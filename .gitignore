@@ -1,0 +1,6 @@
+node_modules
+.env
+.wwebjs_auth
+.wwebjs_cache
+lista_de_tareas
+credentials/botlaurapineda-f799f2c836f9.json
