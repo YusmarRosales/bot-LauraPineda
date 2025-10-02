@@ -6,9 +6,9 @@ const TZ = process.env.DOCTOR_TZ || 'America/Caracas';
 const VE_SLOTS = ['09:00', '11:00', '14:00', '16:00', '18:30']; // 18:30 solo online
 
 function getJwtAuth() {
-  // Prioridad: GOOGLE_CREDENTIALS_B64 (prod), si no GOOGLE_APPLICATION_CREDENTIALS (dev)
-  if (process.env.GOOGLE_CREDENTIALS_B64) {
-    const json = JSON.parse(Buffer.from(process.env.GOOGLE_CREDENTIALS_B64, 'base64').toString('utf8'));
+  // Prioridad: GOOGLE_CREDENTIALS_JSON (prod), si no GOOGLE_APPLICATION_CREDENTIALS (dev)
+  if (process.env.GOOGLE_CREDENTIALS_JSON) {
+    const json = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON
     return new google.auth.JWT(
       json.client_email,
       null,
@@ -19,7 +19,7 @@ function getJwtAuth() {
   // Si tienes GOOGLE_APPLICATION_CREDENTIALS (ruta a archivo)
   return new google.auth.GoogleAuth({
     scopes: ['https://www.googleapis.com/auth/calendar'],
-  });
+  });
 }
 
 function toRFC3339(dateStr, timeStr, tz = TZ) {
