@@ -6,16 +6,10 @@ const TZ = process.env.DOCTOR_TZ || 'America/Caracas';
 const VE_SLOTS = ['09:00', '11:00', '14:00', '16:00', '18:30']; // 18:30 solo online
 
 function getJwtAuth() {
-  if (process.env.GOOGLE_CREDENTIALS_B64) {
-    console.log('[calendar] usando GOOGLE_CREDENTIALS_B64');
-    const json = JSON.parse(Buffer.from(process.env.GOOGLE_CREDENTIALS_B64, 'base64').toString('utf8'));
-    return new google.auth.JWT(json.client_email, null, json.private_key, ['https://www.googleapis.com/auth/calendar']);
-  }
   if (process.env.GOOGLE_CREDENTIALS_JSON) {
     console.log('[calendar] usando GOOGLE_CREDENTIALS_JSON');
-    let payload = process.env.GOOGLE_CREDENTIALS_JSON;
-    if (!payload.trim().startsWith('{')) payload = Buffer.from(payload, 'base64').toString('utf8');
-    const json = JSON.parse(payload);
+    const json = JSON.parse(Buffer.from(process.env.GOOGLE_CREDENTIALS_JSON, 'base64').toString('utf8'));
+    console.log("json:", json);
     return new google.auth.JWT(json.client_email, null, json.private_key, ['https://www.googleapis.com/auth/calendar']);
   }
   console.log('[calendar] usando GOOGLE_APPLICATION_CREDENTIALS');
