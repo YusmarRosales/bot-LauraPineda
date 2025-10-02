@@ -155,18 +155,6 @@ async function bookAppointment({ date, time, modality, duration_minutes = 60, pa
   }
 }
 
-  const ev = res.data;
-  return {
-    ok: true,
-    booked: {
-      date, time, modality, duration_minutes,
-      description,
-      eventId: ev.id,
-      //hangoutLink: ev.hangoutLink || null,
-      //htmlLink: ev.htmlLink || null,
-    }
-  };
-
 async function firstAvailableSlot(auth, dateStr, modality, durationMin = 120) {
   for (const t of VE_SLOTS) {
     if (!allowedSlot(t, modality)) continue;
