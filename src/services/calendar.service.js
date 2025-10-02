@@ -166,7 +166,6 @@ async function bookAppointment({ date, time, modality, duration_minutes = 60, pa
       //htmlLink: ev.htmlLink || null,
     }
   };
-}
 
 async function firstAvailableSlot(auth, dateStr, modality, durationMin = 120) {
   for (const t of VE_SLOTS) {
