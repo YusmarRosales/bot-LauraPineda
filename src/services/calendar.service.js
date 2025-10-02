@@ -6,21 +6,44 @@ const TZ = process.env.DOCTOR_TZ || 'America/Caracas';
 const VE_SLOTS = ['09:00', '11:00', '14:00', '16:00', '18:30']; // 18:30 solo online
 
 function getJwtAuth() {
-  // Prioridad: GOOGLE_CREDENTIALS_JSON (prod), si no GOOGLE_APPLICATION_CREDENTIALS (dev)
+  // 1) Base64 (preferido en producción)
   if (process.env.GOOGLE_CREDENTIALS_JSON) {
-    const json = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON)
+    console.log('[calendar] usando GOOGLE_CREDENTIALS_JSON');
+    const json = JSON.parse(
+      Buffer.from(process.env.GOOGLE_CREDENTIALS_JSON, 'base64').toString('utf8')
+    );
     return new google.auth.JWT(
       json.client_email,
       null,
       json.private_key,
-      ['https://www.googleapis.com/auth/calendar'],
+      ['https://www.googleapis.com/auth/calendar']
     );
   }
-  // Si tienes GOOGLE_APPLICATION_CREDENTIALS (ruta a archivo)
+
+  // 2) JSON plano (solo si realmente pones JSON, NO base64, en la env)
+  if (process.env.GOOGLE_CREDENTIALS_JSON) {
+    console.log('[calendar] usando GOOGLE_CREDENTIALS_JSON');
+    let payload = process.env.GOOGLE_CREDENTIALS_JSON;
+    // si por error te mandan base64 aquí, lo detectamos y decodificamos
+    if (!payload.trim().startsWith('{')) {
+      try { payload = Buffer.from(payload, 'base64').toString('utf8'); } catch {}
+    }
+    const json = JSON.parse(payload);
+    return new google.auth.JWT(
+      json.client_email,
+      null,
+      json.private_key,
+      ['https://www.googleapis.com/auth/calendar']
+    );
+  }
+
+  // 3) Dev (ruta a archivo local)
+  console.log('[calendar] usando GOOGLE_APPLICATION_CREDENTIALS (ruta de archivo)');
   return new google.auth.GoogleAuth({
     scopes: ['https://www.googleapis.com/auth/calendar'],
-  });
+  });
 }
+
 
 function toRFC3339(dateStr, timeStr, tz = TZ) {
   // dateStr: 'YYYY-MM-DD', timeStr: 'HH:mm'
