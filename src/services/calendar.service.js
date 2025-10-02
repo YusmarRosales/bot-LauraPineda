@@ -8,7 +8,7 @@ const VE_SLOTS = ['09:00', '11:00', '14:00', '16:00', '18:30']; // 18:30 solo on
 function getJwtAuth() {
   // Prioridad: GOOGLE_CREDENTIALS_JSON (prod), si no GOOGLE_APPLICATION_CREDENTIALS (dev)
   if (process.env.GOOGLE_CREDENTIALS_JSON) {
-    const json = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON
+    const json = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON)
     return new google.auth.JWT(
       json.client_email,
       null,
