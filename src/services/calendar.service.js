@@ -7,7 +7,6 @@ const VE_SLOTS = ['09:00', '11:00', '14:00', '16:00', '18:30']; // 18:30 solo on
 
 function getJwtAuth() {
   if (process.env.GOOGLE_CREDENTIALS_JSON) {
-    console.log('[calendar] usando GOOGLE_CREDENTIALS_JSON');
     const json = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
     return new google.auth.JWT({
       email: json.client_email,
@@ -15,7 +14,6 @@ function getJwtAuth() {
       scopes: ['https://www.googleapis.com/auth/calendar'],
     });
   }
-  console.log('[calendar] usando GOOGLE_APPLICATION_CREDENTIALS');
   return new google.auth.GoogleAuth({ scopes: ['https://www.googleapis.com/auth/calendar'] });
 }
 
@@ -135,7 +133,6 @@ async function bookAppointment({ date, time, modality, duration_minutes = 60, pa
     return { ok: false, error: 'Faltan parámetros obligatorios.' };
   }
   if (!allowedSlot(time, modality)) {
-    console.log("La hora elegida no es valida para la modalidad")
     return { ok: false, error: 'La hora elegida no es válida para la modalidad.' };
   }
 
@@ -143,7 +140,6 @@ async function bookAppointment({ date, time, modality, duration_minutes = 60, pa
   if (auth.authorize) await new Promise((res, rej) => auth.authorize(err => err ? rej(err) : res()));
 
   const free = await isSlotFree(auth, date, time, duration_minutes);
-  console.log("hora libre: ", free)
   if (!free) {
     return { ok: false, error: 'La hora ya no está disponible.' };
   }
@@ -164,9 +160,6 @@ async function bookAppointment({ date, time, modality, duration_minutes = 60, pa
       end:   { dateTime: endRFC, timeZone: TZ },
     },
   });
-
-  console.log("Resultado peticion calendario: ", res);
-  console.log("res data; ", res?.data)
 
   const ev = res.data;
   return {
