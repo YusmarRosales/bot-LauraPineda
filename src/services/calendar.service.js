@@ -9,7 +9,6 @@ function getJwtAuth() {
   if (process.env.GOOGLE_CREDENTIALS_JSON) {
     console.log('[calendar] usando GOOGLE_CREDENTIALS_JSON');
     const json = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
-    console.log("json:", json);
     return new google.auth.JWT({
       email: json.client_email,
       key: json.private_key,
