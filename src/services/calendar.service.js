@@ -8,9 +8,13 @@ const VE_SLOTS = ['09:00', '11:00', '14:00', '16:00', '18:30']; // 18:30 solo on
 function getJwtAuth() {
   if (process.env.GOOGLE_CREDENTIALS_JSON) {
     console.log('[calendar] usando GOOGLE_CREDENTIALS_JSON');
-    const json = JSON.parse(Buffer.from(process.env.GOOGLE_CREDENTIALS_JSON, 'base64').toString('utf8'));
+    const json = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
     console.log("json:", json);
-    return new google.auth.JWT(json.client_email, null, json.private_key, ['https://www.googleapis.com/auth/calendar']);
+    return new google.auth.JWT({
+      email: json.client_email,
+      key: json.private_key,
+      scopes: ['https://www.googleapis.com/auth/calendar'],
+    });
   }
   console.log('[calendar] usando GOOGLE_APPLICATION_CREDENTIALS');
   return new google.auth.GoogleAuth({ scopes: ['https://www.googleapis.com/auth/calendar'] });
