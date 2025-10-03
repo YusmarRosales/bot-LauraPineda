@@ -135,6 +135,7 @@ async function bookAppointment({ date, time, modality, duration_minutes = 60, pa
     return { ok: false, error: 'Faltan parámetros obligatorios.' };
   }
   if (!allowedSlot(time, modality)) {
+    console.log("La hora elegida no es valida para la modalidad")
     return { ok: false, error: 'La hora elegida no es válida para la modalidad.' };
   }
 
@@ -142,6 +143,7 @@ async function bookAppointment({ date, time, modality, duration_minutes = 60, pa
   if (auth.authorize) await new Promise((res, rej) => auth.authorize(err => err ? rej(err) : res()));
 
   const free = await isSlotFree(auth, date, time, duration_minutes);
+  console.log("hora libre: ", free)
   if (!free) {
     return { ok: false, error: 'La hora ya no está disponible.' };
   }
@@ -162,6 +164,9 @@ async function bookAppointment({ date, time, modality, duration_minutes = 60, pa
       end:   { dateTime: endRFC, timeZone: TZ },
     },
   });
+
+  console.log("Resultado peticion calendario: ", res);
+  console.log("res data; ", res?.data)
 
   const ev = res.data;
   return {

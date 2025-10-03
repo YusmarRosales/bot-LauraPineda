@@ -24,6 +24,7 @@ async function runAssistantTools(toolCalls, context = {}) {
           args.patient_name = wpp_name;
         }
         const result = await bookAppointment(args);
+        console.log("result bookAppointment: ", result)
         outputs.push({ tool_call_id: call.id, output: JSON.stringify(result) });
         // 📣 Notificar al agente si se agendó con éxito
         if (result?.ok && result?.booked && typeof sendMessage === 'function') {
