@@ -52,12 +52,12 @@ async function runAssistantTools(toolCalls, context = {}) {
         try { await MessageToAttentionAgent(sendMessage, message); } catch {}
 
         // 2) Apagar al usuario (no más respuestas del bot)
-        try { await setUserBotEnabled(chatId, false); } catch {}
+        //try { await setUserBotEnabled(chatId, false); } catch {}
 
         // 3) Output para el Assistant (para que redacte respuesta al usuario)
         outputs.push({
           tool_call_id: call.id,
-          output: JSON.stringify({ ok: true, user_disabled: true })
+          output: JSON.stringify({ ok: true, message: "Notificación enviada con exito" })
         });
 
       } else {
