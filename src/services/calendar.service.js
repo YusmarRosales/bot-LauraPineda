@@ -49,10 +49,21 @@ function toRFC3339(dateStr, timeStr, tz = TZ) {
 }
 
 function isWorkingDay(dateStr, tz = TZ) {
-  const dt = new Date(`${dateStr}T12:00:00`);
-  const day = dt.getUTCDay(); // 0=Sun
-  // Para exactitud por TZ usa librería; simplificamos: Lun–Vie
-  return day >= 1 && day <= 5;
+  // dateStr: 'YYYY-MM-DD'
+  const [y, m, d] = dateStr.split('-').map(Number);
+
+  // Usamos un instante de referencia en UTC
+  const probeUTC = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    weekday: 'short',
+  }).formatToParts(probeUTC);
+
+  const weekday = parts.find(p => p.type === 'weekday')?.value.toLowerCase();
+
+  // mon, tue, wed, thu, fri
+  return ['mon', 'tue', 'wed', 'thu', 'fri'].includes(weekday);
 }
 
 function allowedSlot(time, modality) {
@@ -118,6 +129,37 @@ async function getDayAvailability(auth, dateStr, modality, durationMin = 120) {
 async function checkAvailability({ date, modality, duration_minutes = 120, requested_time = null }) {
   if (!date || !modality) return { ok: false, error: 'date y modality son requeridos' };
 
+  // No se puede agendar fechas pasadas
+  const today = new Date();
+  const targetDate = new Date(date + 'T00:00:00');
+  if (targetDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
+    return { ok: false, error: 'No se pueden agendar citas en fechas pasadas, valida la fecha con el usuario antes de agendar.' };
+  }
+
+  const [y, m, d] = date.split('-').map(Number);
+  const probeUTC = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  const weekdayParts = new Intl.DateTimeFormat('en-US', {
+    timeZone: TZ,
+    weekday: 'short',
+  }).formatToParts(probeUTC);
+  const weekday = weekdayParts.find(p => p.type === 'weekday')?.value.toLowerCase();
+
+  // SÁBADO → humano
+  if (weekday === 'sat') {
+    return {
+      ok: false,
+      error: 'Los Sábados es opcional, se coordina directamente con la licenciada. Escala el caso al humano.'
+    };
+  }
+
+  // DOMINGO
+  if (!isWorkingDay(date, TZ)) {
+    return {
+      ok: false,
+      error: 'La doctora no atiende los domingos. Consulta con el usuario preferencia de lunes a viernes en los horarios disponibles.'
+    };
+  }
+
   const auth = await getJwtAuth();
   if (auth.authorize) await new Promise((res, rej) => auth.authorize(err => err ? rej(err) : res()));
 
@@ -132,6 +174,39 @@ async function bookAppointment({ date, time, modality, duration_minutes = 60, pa
   if (!date || !time || !modality || !patient_name || !patient_phone) {
     return { ok: false, error: 'Faltan parámetros obligatorios.' };
   }
+
+  // VALIDACIÓN 1: No se puede agendar fechas pasadas
+  const today = new Date();
+  const targetDate = new Date(date + 'T00:00:00');
+  if (targetDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
+    return { ok: false, error: 'No se pueden agendar citas en fechas pasadas, valida la fecha con el usuario antes de agendar.' };
+  }
+
+  // VALIDACIÓN 2: No se puede agendar sábados ni domingos
+  const [y, m, d] = date.split('-').map(Number);
+  const probeUTC = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  const weekdayParts = new Intl.DateTimeFormat('en-US', {
+    timeZone: TZ,
+    weekday: 'short',
+  }).formatToParts(probeUTC);
+  const weekday = weekdayParts.find(p => p.type === 'weekday')?.value.toLowerCase();
+
+  // SÁBADO → humano
+  if (weekday === 'sat') {
+    return {
+      ok: false,
+      error: 'Los Sábados es opcional, se coordina directamente con la licenciada. Escala el caso al humano.'
+    };
+  }
+
+  // DOMINGO
+  if (!isWorkingDay(date, TZ)) {
+    return {
+      ok: false,
+      error: 'La doctora no atiende los domingos. Consulta con el usuario preferencia de lunes a viernes en los horarios disponibles.'
+    };
+  }
+
   if (!allowedSlot(time, modality)) {
     return { ok: false, error: 'La hora elegida no es válida para la modalidad.' };
   }
